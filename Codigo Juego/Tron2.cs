@@ -2,15 +2,20 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class Tron2 : MonoBehaviour 
+public class Tron2 : MonoBehaviour
 {
     public GameObject spawned;
-    private Vector2 moveDirection = Vector2.zero; // Dirección inicial (estática)
+    private Vector2 moveDirection = Vector2.zero; // Dirección inicial
     public float moveSpeed = 2.5f; // Velocidad de movimiento
     private bool isMoving = true; // Estado de si la moto está en movimiento
     public int maxClones = 3; // Número máximo de clones visibles
     private List<GameObject> clones = new List<GameObject>(); // Lista para almacenar los clones
-    private bool hasStartedMoving = false; // Controlar si ya ha comenzado a moverse
+
+    // Definir los límites del mapa
+    public float minX = -10.0f;
+    public float maxX = 10.0f;
+    public float minY = -5.0f;
+    public float maxY = 5.0f;
 
     void Start()
     {
@@ -23,6 +28,7 @@ public class Tron2 : MonoBehaviour
         if (isMoving)  // Solo mover si la moto está en movimiento
         {
             Move();
+            CheckBounds(); // Verificar si la moto está dentro de los límites
         }
     }
 
@@ -32,18 +38,18 @@ public class Tron2 : MonoBehaviour
         // Iniciar moviéndose hacia arriba e izquierda
         moveDirection = Vector2.up;
         transform.rotation = Quaternion.Euler(0, 0, 0); // Ajustar rotación hacia arriba
-        yield return new WaitForSeconds(2.0f); // Mantener la dirección inicial por 2 segundos
+        yield return new WaitForSeconds(0.5f); // Mantener la dirección inicial por 0.5 segundos
 
         // Cambiar a moverse hacia la izquierda
         moveDirection = Vector2.left;
         transform.rotation = Quaternion.Euler(0, 0, 270); // Ajustar rotación hacia la izquierda
-        yield return new WaitForSeconds(2.0f); // Mantener la dirección durante 2 segundos
+        yield return new WaitForSeconds(0.5f); // Mantener la dirección durante 0.5 segundos
 
         // Ahora comenzar el movimiento aleatorio
         while (true)
         {
             // Elegir una nueva dirección aleatoria
-            float randomDirection = Random.Range(1f, 2f);
+            float randomDirection = Random.Range(0f, 4f);
             if (randomDirection < 1)
                 moveDirection = Vector2.up;
             else if (randomDirection < 2)
@@ -58,7 +64,7 @@ public class Tron2 : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, 0, angle - 90); // Ajuste de ángulo
 
             // Esperar un intervalo de tiempo antes de cambiar de dirección
-            yield return new WaitForSeconds(Random.Range(1.0f, 2.0f)); // Cambiar dirección cada 1 a 3 segundos
+            yield return new WaitForSeconds(Random.Range(0.5f, 1.0f)); // Cambiar dirección cada 0.5 a 1 segundos
         }
     }
 
@@ -68,12 +74,28 @@ public class Tron2 : MonoBehaviour
         transform.position += (Vector3)moveDirection * moveSpeed * Time.deltaTime;
     }
 
-    // Método que se ejecuta cuando hay una colisión
-    public void OnCollisionEnter2D(Collision2D collision)
+    // Método para verificar si la moto sale de los límites
+    void CheckBounds()
     {
-        Debug.Log("Colisión detectada");
-        // Lógica en caso de colisión
-        // Destroy(gameObject); // Destruye el objeto en caso de colisión
+        if (transform.position.x < -10.27 || transform.position.x > 10.27 ||
+            transform.position.y < -4.3 || transform.position.y > 4.27)
+        {
+            Debug.Log("Moto fuera de los límites, destruyendo moto y clones");
+            DestroyMotoAndClones();
+        }
+    }
+
+    // Método que destruye la moto y los clones
+    void DestroyMotoAndClones()
+    {
+        // Destruir todos los clones
+        foreach (GameObject clone in clones)
+        {
+            Destroy(clone);
+        }
+
+        // Destruir la moto
+        Destroy(gameObject);
     }
 
     // Método IEnumerator para generar clones

@@ -10,9 +10,15 @@ public class Tron : MonoBehaviour
     private bool isMoving = false; // Estado de si la moto está en movimiento
     public int maxClones = 3; // Número máximo de clones visibles
     private List<GameObject> clones = new List<GameObject>(); // Lista para almacenar los clones
+    private FuelManager fuelManager; // Referencia al FuelManager
+
+    // Limites del mapa (ajusta según tu escena)
+    public float boundaryX = 8.0f; // Límite en el eje X
+    public float boundaryY = 4.5f; // Límite en el eje Y
 
     void Start()
     {
+        fuelManager = FindObjectOfType<FuelManager>(); // Encontrar el FuelManager en la escena
         StartCoroutine(Spawn()); // Iniciar la creación de clones
     }
 
@@ -22,6 +28,7 @@ public class Tron : MonoBehaviour
         if (isMoving) // Solo mover si la moto está en movimiento
         {
             Move();
+            CheckBoundary(); // Verificar si la moto está fuera de los límites
         }
     }
 
@@ -60,17 +67,35 @@ public class Tron : MonoBehaviour
     // Método para aplicar el movimiento
     void Move()
     {
-        transform.position += (Vector3)moveDirection * moveSpeed * Time.deltaTime;
+        if (fuelManager != null && fuelManager.fuel > 0) // Verificar si hay combustible
+        {
+            transform.position += (Vector3)moveDirection * moveSpeed * Time.deltaTime;
+        }
+    }
+
+    // Método para verificar si la moto está fuera de los límites
+    void CheckBoundary()
+    {
+        if (transform.position.x < -10.27 || transform.position.x > 10.27 ||
+            transform.position.y < -4.3 || transform.position.y > 4.27)
+        {
+            Debug.Log("La moto ha salido del mapa y se desintegra.");
+            Destroy(gameObject); // Destruir la moto
+
+            // Destruir todos los clones
+            foreach (GameObject clone in clones)
+            {
+                Destroy(clone);
+            }
+            clones.Clear(); // Vaciar la lista de clones
+        }
     }
 
     // Método que se ejecuta cuando hay una colisión
     private void OnCollisionEnter2D(Collision2D collision)
     {
         Debug.Log("Colisión detectada con: " + collision.gameObject.name);
-        // Aquí puedes agregar la lógica para manejar la colisión
         isMoving = false; // Detener la moto al colisionar
-        // Aquí podrías también destruir la moto, reiniciar el juego, etc.
-        // Destroy(gameObject); // Descomentar si deseas destruir la moto al colisionar
     }
 
     // Método IEnumerator para generar clones
@@ -88,6 +113,9 @@ public class Tron : MonoBehaviour
 
             // Desactivar el script en el clon para que no cree más clones
             spawned.GetComponent<Tron>().enabled = false;
+
+            // Ajustar la posición del clon para que aparezca detrás de la moto
+            spawned.transform.position = (Vector3)transform.position - (Vector3)moveDirection * 0.3f; // Ajusta la distancia según sea necesario
 
             // Agregar el clon a la lista de clones
             clones.Add(spawned);

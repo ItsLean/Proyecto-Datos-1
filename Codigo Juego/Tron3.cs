@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class Tron3 : MonoBehaviour 
+public class Tron3 : MonoBehaviour
 {
     public GameObject spawned;
     private Vector2 moveDirection = Vector2.zero; // Dirección inicial
@@ -10,6 +10,12 @@ public class Tron3 : MonoBehaviour
     private bool isMoving = true; // Estado de si la moto está en movimiento
     public int maxClones = 3; // Número máximo de clones visibles
     private List<GameObject> clones = new List<GameObject>(); // Lista para almacenar clones
+
+    // Definir los límites del mapa
+    public float minX = -10.0f;
+    public float maxX = 10.0f;
+    public float minY = -5.0f;
+    public float maxY = 5.0f;
 
     void Start()
     {
@@ -22,6 +28,7 @@ public class Tron3 : MonoBehaviour
         if (isMoving)  // Solo mover si la moto está en movimiento
         {
             Move();
+            CheckBounds(); // Verificar si la moto está dentro de los límites
         }
     }
 
@@ -67,12 +74,28 @@ public class Tron3 : MonoBehaviour
         transform.position += (Vector3)moveDirection * moveSpeed * Time.deltaTime;
     }
 
-    // Método que se ejecuta cuando hay una colisión
-    public void OnCollisionEnter2D(Collision2D collision)
+    // Método para verificar si la moto sale de los límites
+    void CheckBounds()
     {
-        Debug.Log("Colisión detectada");
-        // Lógica en caso de colisión
-        // Destroy(gameObject); // Destruye el objeto en caso de colisión
+        if (transform.position.x < -10.27 || transform.position.x > 10.27 ||
+            transform.position.y < -4.3 || transform.position.y > 4.27)
+        {
+            Debug.Log("Moto fuera de los límites, destruyendo moto y clones");
+            DestroyMotoAndClones();
+        }
+    }
+
+    // Método que destruye la moto y los clones
+    void DestroyMotoAndClones()
+    {
+        // Destruir todos los clones
+        foreach (GameObject clone in clones)
+        {
+            Destroy(clone);
+        }
+
+        // Destruir la moto
+        Destroy(gameObject);
     }
 
     // Método IEnumerator para generar clones
