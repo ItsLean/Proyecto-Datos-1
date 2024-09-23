@@ -12,14 +12,11 @@ public class Tron : MonoBehaviour
     private List<GameObject> clones = new List<GameObject>(); // Lista para almacenar los clones
     private FuelManager fuelManager; // Referencia al FuelManager
 
-    // Limites del mapa (ajusta según tu escena)
-    public float boundaryX = 8.0f; // Límite en el eje X
-    public float boundaryY = 4.5f; // Límite en el eje Y
-
     void Start()
     {
         fuelManager = FindObjectOfType<FuelManager>(); // Encontrar el FuelManager en la escena
         StartCoroutine(Spawn()); // Iniciar la creación de clones
+        AddHitbox(); // Añadir hitbox
     }
 
     void Update()
@@ -91,11 +88,23 @@ public class Tron : MonoBehaviour
         }
     }
 
-    // Método que se ejecuta cuando hay una colisión
-    private void OnCollisionEnter2D(Collision2D collision)
+    // Método para añadir la hitbox
+    void AddHitbox()
     {
-        Debug.Log("Colisión detectada con: " + collision.gameObject.name);
-        isMoving = false; // Detener la moto al colisionar
+        CircleCollider2D hitbox = gameObject.AddComponent<CircleCollider2D>();
+        hitbox.radius = 0.5f; // Establecer el radio de la hitbox
+        hitbox.isTrigger = true; // Hacer que la hitbox sea un trigger
+    }
+
+    // Método que se ejecuta cuando hay una colisión
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Motorcycle")) // Asegúrate de que las otras motos tengan esta etiqueta
+        {
+            Debug.Log("Colisión detectada con: " + other.gameObject.name);
+            Destroy(other.gameObject); // Destruir la otra moto
+            Destroy(gameObject); // Destruir esta moto
+        }
     }
 
     // Método IEnumerator para generar clones
